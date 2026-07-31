@@ -11,20 +11,25 @@
 <body>
 <main>
   <h1>iApply</h1>
-  <p class="lead">Five focused opportunities every Friday—one scholarship, regular job, part-time job, weekend job, and temporary job matched to your industry.</p>
+  <p class="lead">Five focused opportunities every Friday—one academic, 9-to-5, part-time, weekend, and temporary opportunity matched to your industry.</p>
   <section class="card">
-    <h2>Start your weekly job plan</h2>
+    <h2>iApply order form</h2>
     <p class="muted">This first GitHub Pages version works in your browser. It does not send emails or store your résumé online yet.</p>
     <div class="grid">
+      <label>Full name<input id="name" placeholder="Your name"></label>
       <label>Your email<input id="email" type="email" placeholder="you@email.com"></label>
-      <label>NAICS code<input id="naics" value="541330" placeholder="Example: 541330"></label>
+      <label>NAICS code (optional)<input id="naics" value="541330" placeholder="Example: 541330"></label>
       <label>Industry or role<input id="role" value="Transportation engineering" placeholder="Example: cloud support"></label>
+      <label>Location<input id="location" placeholder="Calgary, Alberta or Remote"></label>
     </div>
-    <p><button id="find">Find my five opportunities</button></p>
+    <label style="margin-top:14px">Academic focus<select id="academic"><option>Student</option><option>Scholarships</option><option>Faculty</option></select></label>
+    <label style="margin-top:14px">Paste résumé text (optional)<textarea id="resume" rows="5" placeholder="Paste skills, experience, education, and target roles. iApply uses this only in this browser for the demo recommendation."></textarea></label>
+    <label class="muted" style="margin-top:14px;font-weight:500"><input id="consent" type="checkbox" style="width:auto;margin-right:7px">I would like to receive the Friday five-link email after payment.</label>
+    <p><button id="find">Get my free NAICS preview</button></p>
   </section>
   <section class="card hidden" id="results">
-    <h2>Your five-category plan</h2>
-    <p class="muted">These are demonstration opportunities. When the platform is connected to a real job database, each card will contain a live employer or funder link.</p>
+    <h2>Your free NAICS preview</h2>
+    <p class="muted">These suggested industry codes are editable. Pay only when you are ready to unlock five tailored résumé drafts and the Friday five-link service.</p>
     <div class="job-grid" id="jobs"></div>
   </section>
   <section class="card hidden" id="batchBox">
@@ -38,27 +43,29 @@
     <a class="button" href="https://chatgpt.com/" target="_blank" rel="noopener">Need writing help? Open ChatGPT</a>
   </section>
   <section class="card">
-    <h2>$50 iApply access</h2>
-    <p class="muted">The final version will use one $50 payment link, email access, private résumé storage, real job listings, and a Friday email with the five selected links.</p>
-    <button class="secondary" id="payment">Payment link coming soon</button>
+    <h2>Unlock iApply — $50 lifetime access</h2>
+    <p class="muted">Unlock five tailored résumé drafts, private email access, real job listings, and your Friday five-link email.</p>
+    <button id="payment">Unlock my five résumés — $50</button>
   </section>
 </main>
 <script>
-const types=['Scholarship / funding','Regular 9-to-5','Part-time','Weekend','Temporary'];
+const types=['Academics','9-to-5','Part-time','Weekends','Temporary'];
 const $=id=>document.getElementById(id);
-function jobData(naics, role){const subject=role||'your selected field';return [
- {type:types[0],title:`${subject} professional development award`,org:'Verified funding organization',text:'A funding opportunity for education, research, professional development, or project work.'},
+function suggestedCodes(fallback, text){const t=text.toLowerCase();if(/traffic|transportation|vissim|synchro|civil engineering|road safety/.test(t))return ['541330','541330','541330','541330','541330'];if(/aws|cloud|python|software|devops|data centre/.test(t))return ['611310','541512','541512','541512','541512'];return Array(5).fill(fallback);}
+function jobData(naics, role, resume, academic){const subject=role||'your selected field', codes=suggestedCodes(naics,`${role} ${resume}`);const academicCopy={Student:{title:`${subject} student opportunity`,org:'University or research group',text:'A student research assistant role, graduate program opportunity, internship, or academic support position.'},Scholarships:{title:`${subject} scholarship opportunity`,org:'Funding organization or university',text:'A scholarship, fellowship, bursary, or research-funding opportunity matched to the selected field.'},Faculty:{title:`${subject} faculty opportunity`,org:'University or college',text:'A postdoctoral, research, instructor, lecturer, or faculty position matched to the selected field.'}}[academic]||{};return [
+ {type:types[0],title:academicCopy.title,org:academicCopy.org,text:academicCopy.text},
  {type:types[1],title:`${subject} specialist`,org:'Participating employer',text:'A full-time role aligned with your NAICS industry and transferable skills.'},
  {type:types[2],title:`Part-time ${subject} assistant`,org:'Participating employer',text:'A flexible role designed for people balancing work, study, or caregiving.'},
  {type:types[3],title:`Weekend ${subject} support role`,org:'Participating employer',text:'A weekend-focused opportunity in or near your industry.'},
  {type:types[4],title:`Temporary ${subject} project role`,org:'Participating employer',text:'A fixed-term project, contract, or seasonal opportunity.'}
-].map((job,i)=>({...job,id:`${naics}-${i}`}));}
-function render(){const naics=$('naics').value.trim()||'NAICS',role=$('role').value.trim()||'your industry';const jobs=jobData(naics,role);$('results').classList.remove('hidden');$('batchBox').classList.remove('hidden');$('jobs').innerHTML=jobs.map((j,i)=>`<article class="job"><span class="badge">${naics}</span><p class="type">${j.type}</p><h3>${j.title}</h3><p><strong>${j.org}</strong></p><p class="muted">${j.text}</p><button data-id="${j.id}" data-title="${j.title}">Add to my five</button></article>`).join('');document.querySelectorAll('[data-id]').forEach(button=>button.onclick=()=>add(button.dataset.id,button.dataset.title));showBatch();}
-function add(id,title){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]');if(batch.some(x=>x.id===id))return alert('Already in your batch.');if(batch.length>=5)return alert('Your batch already has five opportunities.');batch.push({id,title,status:'Ready'});localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
-function showBatch(){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]');$('batch').innerHTML=batch.length?batch.map((x,i)=>`<div class="batch"><strong>Application ${i+1} of ${batch.length}: ${x.title}</strong><p class="muted">Status: ${x.status}</p><button class="secondary" onclick="submitted('${x.id}')">Mark submitted</button> <button class="secondary" onclick="removeJob('${x.id}')">Remove</button></div>`).join(''):'<p class="muted">No saved opportunities yet.</p>';}
+].map((job,i)=>({...job,naics:codes[i],id:`${codes[i]}-${i}`}));}
+const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function render(){const email=$('email').value.trim(),resume=$('resume').value.trim();if(!email||!resume){alert('Please enter your email and paste your résumé text for the free preview.');return;}const naics=$('naics').value.trim()||'NAICS',role=$('role').value.trim()||'your industry',academic=$('academic').value;const jobs=jobData(naics,role,resume,academic);$('results').classList.remove('hidden');$('jobs').innerHTML=jobs.map((j,i)=>`<article class="job"><span class="badge">iApply suggestion</span><p class="type">${esc(j.type)}</p><h3>${esc(j.title)}</h3><p><strong>${esc(j.org)}</strong></p><p class="muted">${esc(j.text)}</p><label>Suggested NAICS — change if needed<input class="job-naics" value="${esc(j.naics)}" aria-label="NAICS code for ${esc(j.type)}"></label><p><button class="unlock" type="button">Unlock after payment</button></p></article>`).join('');document.querySelectorAll('.unlock').forEach(button=>button.onclick=()=>$('payment').scrollIntoView({behavior:'smooth',block:'center'}));}
+function add(id,title,naics){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]');if(batch.some(x=>x.id===id))return alert('Already in your batch.');if(batch.length>=5)return alert('Your batch already has five opportunities.');batch.push({id,title,naics:naics||'Not selected',status:'Ready'});localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
+function showBatch(){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]');$('batch').innerHTML=batch.length?batch.map((x,i)=>`<div class="batch"><strong>Application ${i+1} of ${batch.length}: ${x.title}</strong><p class="muted">NAICS focus: ${esc(x.naics||'Not selected')} · Status: ${x.status}</p><button class="secondary" onclick="submitted('${x.id}')">Mark submitted</button> <button class="secondary" onclick="removeJob('${x.id}')">Remove</button></div>`).join(''):'<p class="muted">No saved opportunities yet.</p>';}
 function submitted(id){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]').map(x=>x.id===id?{...x,status:'Submitted'}:x);localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
 function removeJob(id){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]').filter(x=>x.id!==id);localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
-$('find').onclick=render;$('payment').onclick=()=>alert('Connect your $50 Stripe Payment Link here when it is ready.');showBatch();
+$('find').onclick=render;$('payment').onclick=()=>alert('Connect your $50 Stripe Payment Link here when it is ready. The final version will securely verify payment before unlocking the résumé drafts.');showBatch();
 </script>
 </body>
 </html>
