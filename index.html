@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>iApply · five focused opportunities</title>
+  <style>
+    :root{--navy:#1d2745;--blue:#4366df;--sky:#edf2ff;--line:#d8e0fb;--muted:#62708f;--gold:#ffd976}*{box-sizing:border-box}body{margin:0;background:#f8faff;color:var(--navy);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1100px;margin:auto;padding:32px 18px 64px}h1{font-size:clamp(2.6rem,8vw,5rem);line-height:.9;margin:0;color:var(--blue)}h2{margin:0 0 8px}.lead{font-size:1.2rem;max-width:680px;color:var(--muted);line-height:1.5}.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:20px;box-shadow:0 10px 24px #1d3d9c0c}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.job-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.job{border:1px solid var(--line);padding:18px;border-radius:16px;background:linear-gradient(135deg,#fff,#f6f8ff)}.badge{display:inline-block;background:var(--sky);color:#3150b1;border-radius:999px;padding:4px 8px;font-size:.78rem;font-weight:750}.type{color:#3150b1;font-size:.85rem;font-weight:750}label{font-size:.9rem;font-weight:750;display:block}input,textarea,select{font:inherit;width:100%;margin-top:6px;padding:11px;border:1px solid #b8c5e9;border-radius:10px;color:var(--navy)}button,a.button{font:inherit;font-weight:750;border:0;border-radius:10px;background:var(--blue);color:white;padding:11px 15px;cursor:pointer;text-decoration:none;display:inline-block}button.secondary{background:var(--sky);color:#3150b1}.muted{color:var(--muted);line-height:1.5}.batch{background:#fff9dc;border:1px solid #f2d778;border-radius:14px;padding:14px;margin-top:14px}.hidden{display:none}@media(max-width:700px){.grid,.job-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<main>
+  <h1>iApply</h1>
+  <p class="lead">Five focused opportunities every Friday—one scholarship, regular job, part-time job, weekend job, and temporary job matched to your industry.</p>
+  <section class="card">
+    <h2>Start your weekly job plan</h2>
+    <p class="muted">This first GitHub Pages version works in your browser. It does not send emails or store your résumé online yet.</p>
+    <div class="grid">
+      <label>Your email<input id="email" type="email" placeholder="you@email.com"></label>
+      <label>NAICS code<input id="naics" value="541330" placeholder="Example: 541330"></label>
+      <label>Industry or role<input id="role" value="Transportation engineering" placeholder="Example: cloud support"></label>
+    </div>
+    <p><button id="find">Find my five opportunities</button></p>
+  </section>
+  <section class="card hidden" id="results">
+    <h2>Your five-category plan</h2>
+    <p class="muted">These are demonstration opportunities. When the platform is connected to a real job database, each card will contain a live employer or funder link.</p>
+    <div class="job-grid" id="jobs"></div>
+  </section>
+  <section class="card hidden" id="batchBox">
+    <h2>My application batch</h2>
+    <p class="muted">Pick up to five. iApply will guide you through one application at a time.</p>
+    <div id="batch"></div>
+  </section>
+  <section class="card">
+    <h2>Writing help</h2>
+    <p class="muted">Need help improving a résumé bullet, cover letter, or application answer? Open ChatGPT in a new tab. Paste only what you choose to share.</p>
+    <a class="button" href="https://chatgpt.com/" target="_blank" rel="noopener">Need writing help? Open ChatGPT</a>
+  </section>
+  <section class="card">
+    <h2>$50 iApply access</h2>
+    <p class="muted">The final version will use one $50 payment link, email access, private résumé storage, real job listings, and a Friday email with the five selected links.</p>
+    <button class="secondary" id="payment">Payment link coming soon</button>
+  </section>
+</main>
+<script>
+const types=['Scholarship / funding','Regular 9-to-5','Part-time','Weekend','Temporary'];
+const $=id=>document.getElementById(id);
+function jobData(naics, role){const subject=role||'your selected field';return [
+ {type:types[0],title:`${subject} professional development award`,org:'Verified funding organization',text:'A funding opportunity for education, research, professional development, or project work.'},
+ {type:types[1],title:`${subject} specialist`,org:'Participating employer',text:'A full-time role aligned with your NAICS industry and transferable skills.'},
+ {type:types[2],title:`Part-time ${subject} assistant`,org:'Participating employer',text:'A flexible role designed for people balancing work, study, or caregiving.'},
+ {type:types[3],title:`Weekend ${subject} support role`,org:'Participating employer',text:'A weekend-focused opportunity in or near your industry.'},
+ {type:types[4],title:`Temporary ${subject} project role`,org:'Participating employer',text:'A fixed-term project, contract, or seasonal opportunity.'}
+].map((job,i)=>({...job,id:`${naics}-${i}`}));}
+function render(){const naics=$('naics').value.trim()||'NAICS',role=$('role').value.trim()||'your industry';const jobs=jobData(naics,role);$('results').classList.remove('hidden');$('batchBox').classList.remove('hidden');$('jobs').innerHTML=jobs.map((j,i)=>`<article class="job"><span class="badge">${naics}</span><p class="type">${j.type}</p><h3>${j.title}</h3><p><strong>${j.org}</strong></p><p class="muted">${j.text}</p><button data-id="${j.id}" data-title="${j.title}">Add to my five</button></article>`).join('');document.querySelectorAll('[data-id]').forEach(button=>button.onclick=()=>add(button.dataset.id,button.dataset.title));showBatch();}
+function add(id,title){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]');if(batch.some(x=>x.id===id))return alert('Already in your batch.');if(batch.length>=5)return alert('Your batch already has five opportunities.');batch.push({id,title,status:'Ready'});localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
+function showBatch(){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]');$('batch').innerHTML=batch.length?batch.map((x,i)=>`<div class="batch"><strong>Application ${i+1} of ${batch.length}: ${x.title}</strong><p class="muted">Status: ${x.status}</p><button class="secondary" onclick="submitted('${x.id}')">Mark submitted</button> <button class="secondary" onclick="removeJob('${x.id}')">Remove</button></div>`).join(''):'<p class="muted">No saved opportunities yet.</p>';}
+function submitted(id){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]').map(x=>x.id===id?{...x,status:'Submitted'}:x);localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
+function removeJob(id){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]').filter(x=>x.id!==id);localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
+$('find').onclick=render;$('payment').onclick=()=>alert('Connect your $50 Stripe Payment Link here when it is ready.');showBatch();
+</script>
+</body>
+</html>
