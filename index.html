@@ -65,7 +65,7 @@ function add(id,title,naics){let batch=JSON.parse(localStorage.getItem('iapplyBa
 function showBatch(){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]');$('batch').innerHTML=batch.length?batch.map((x,i)=>`<div class="batch"><strong>Application ${i+1} of ${batch.length}: ${x.title}</strong><p class="muted">NAICS focus: ${esc(x.naics||'Not selected')} · Status: ${x.status}</p><button class="secondary" onclick="submitted('${x.id}')">Mark submitted</button> <button class="secondary" onclick="removeJob('${x.id}')">Remove</button></div>`).join(''):'<p class="muted">No saved opportunities yet.</p>';}
 function submitted(id){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]').map(x=>x.id===id?{...x,status:'Submitted'}:x);localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
 function removeJob(id){let batch=JSON.parse(localStorage.getItem('iapplyBatch')||'[]').filter(x=>x.id!==id);localStorage.setItem('iapplyBatch',JSON.stringify(batch));showBatch();}
-$('find').onclick=render;$('payment').onclick=()=>alert('Connect your $50 Stripe Payment Link here when it is ready. The final version will securely verify payment before unlocking the résumé drafts.');showBatch();
+$('find').onclick=render;$('payment').onclick=()=>window.location.href='https://buy.stripe.com/bJe14n6uQchS4hJ3oHgIo04';showBatch();
 </script>
 </body>
 </html>
